@@ -1,3 +1,40 @@
+/*
+===============================================================================
+DDL + Data Load Script: Create & Populate Bronze Tables
+===============================================================================
+Script Purpose:
+    This script performs two tasks for the 'bronze' schema:
+    
+    1. DDL Creation:
+       - Drops existing Bronze tables if they already exist.
+       - Creates fresh Bronze tables for CRM and ERP datasets.
+
+    2. Data Loading:
+       - Immediately loads data from CSV files into the Bronze tables
+         using the `LOAD DATA INFILE` command.
+       - Each table is first truncated (clean start) before new data 
+         is inserted from its corresponding CSV file.
+
+Notes:
+    - The CSV file paths must be updated to reflect your local environment.
+    - `LOCAL INFILE` must be enabled in MySQL if files are not in the server's 
+      default directory.
+    - This script is intended for bulk-loading raw data into Bronze 
+      (staging) layer tables from source CSVs.
+
+Usage Example:
+    -- Run the entire script in MySQL Workbench or CLI:
+    SOURCE C:/sql/dwh_project/scripts/bronze_create_and_load.sql;
+
+    -- After running, Bronze tables will be both created and populated.
+===============================================================================
+*/
+
+SET GLOBAL local_infile = 1;
+SHOW GLOBAL VARIABLES LIKE 'local_infile';
+
+DELIMITER $$
+
 -- ========================================================
 -- ETL Script to Load Data into Bronze Layer
 -- ========================================================
@@ -185,3 +222,28 @@ SET
     cat         = NULLIF(TRIM(@v_cat), ''),
     subcat      = NULLIF(TRIM(@v_subcat), ''),
     maintenance = NULLIF(TRIM(@v_maintenance), '');
+
+ 
+-- Show all 6 tables under bronze schema
+SHOW TABLES IN bronze;
+
+-- Count rows in each table
+SELECT 'crm_cust_info' AS table_name, COUNT(*) AS row_count FROM bronze.crm_cust_info
+UNION ALL
+SELECT 'crm_prd_info', COUNT(*) FROM bronze.crm_prd_info
+UNION ALL
+SELECT 'crm_sales_details', COUNT(*) FROM bronze.crm_sales_details
+UNION ALL
+SELECT 'loc_a101', COUNT(*) FROM bronze.loc_a101
+UNION ALL
+SELECT 'cust_az12', COUNT(*) FROM bronze.cust_az12
+UNION ALL
+SELECT 'px_cat_g1v2', COUNT(*) FROM bronze.px_cat_g1v2;
+
+-- Peek first 5 rows from each table
+SELECT * FROM bronze.crm_cust_info LIMIT 5;
+SELECT * FROM bronze.crm_prd_info LIMIT 5;
+SELECT * FROM bronze.crm_sales_details LIMIT 5;
+SELECT * FROM bronze.loc_a101 LIMIT 5;
+SELECT * FROM bronze.cust_az12 LIMIT 5;
+SELECT * FROM bronze.px_cat_g1v2 LIMIT 5;
